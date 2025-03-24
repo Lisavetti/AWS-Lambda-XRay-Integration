@@ -6,7 +6,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const TABLE_NAME = process.env.target_table || "Weather";
 
 async function fetchWeather() {
-    const url = "https://api.open-meteo.com/v1/forecast?latitude=50.4375&longitude=30.5&hourly=temperature_2m";
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m";
 
     try {
         const response = await axios.get(url);
@@ -27,16 +27,22 @@ exports.handler = async (event) => {
         const item = {
             id: uuidv4(),
             forecast: {
+                elevation: weatherData.elevation,
+                generationtime_ms: weatherData.generationtime_ms,
+                hourly: {
+                    temperature_2m: weatherData.hourly.temperature_2m,
+                    time: weatherData.hourly.time,
+                },
+                hourly_units: {
+                    temperature_2m: weatherData.hourly_units.temperature_2m,
+                    time: weatherData.hourly_units.time,
+                },
                 latitude: weatherData.latitude,
                 longitude: weatherData.longitude,
-                generationtime_ms: weatherData.generationtime_ms,
-                utc_offset_seconds: weatherData.utc_offset_seconds,
                 timezone: weatherData.timezone,
                 timezone_abbreviation: weatherData.timezone_abbreviation,
-                elevation: weatherData.elevation,
-                hourly_units: weatherData.hourly_units,
-                hourly: weatherData.hourly
-            }
+                utc_offset_seconds: weatherData.utc_offset_seconds,
+            },
         };
 
         console.log("Saving item to DynamoDB:", JSON.stringify(item, null, 2));
